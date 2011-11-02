@@ -1,0 +1,17 @@
+* Idéias
+** TODO Fazer o Lingua (Perl) Unicode-compliant
+** TODO Escrever um sistema semelhante ao [[http://www.wefeelfine.org/][We Feel Fine]] para o português
+** TODO Testar frameworks de NLP (Senna, Stanford, python)
+** TODO Aplicar Weka aos N tweets guardados no servidor
+** TODO Dicionário de miguxês?
+* Bots
+** TODO Blackjack/21 bot
+** TODO [[http://aichallenge.org/index.php][AI Challenge Bot]]
+** TODO [[www.hacker.org][Hacker.org Bot]]
+* Programação
+** TODO Clojure + [[http://projecteuler.net/][Project Euler]]
+* Ambiente
+** DONE Abrir um Github
+** TODO Abrir um blog
+** DONE oh-my-zsh prompt
+*** TODO Medidor de bateria p/ prompt
