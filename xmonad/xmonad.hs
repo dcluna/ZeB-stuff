@@ -16,6 +16,17 @@ import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.EZConfig(additionalKeys)
 import System.IO
 
+-- IM layout
+import XMonad.Hooks.ManageHelpers
+import XMonad.Layout.IM
+import XMonad.Layout.PerWorkspace
+import Data.Ratio ((%))
+
+-- Layouts
+import XMonad.Layout.Accordion
+import XMonad.Layout.Spiral 
+import XMonad.Layout.Tabbed
+
 import XMonad.Util.Loggers -- ppExtras: battery
 import XMonad.Actions.CycleWS -- cycling through workspaces
 --import XMonad.Actions.Volume -- for volume control through my keys
@@ -113,7 +124,9 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
  
     -- Change to adjacent workspaces  
     [((modm              , xK_Left   ), prevWS                  )
-    ,((modm              , xK_Right  ), nextWS                  )]
+    ,((modm              , xK_Right  ), nextWS                  )
+    ,((modm .|. shiftMask, xK_Right  ), shiftToNext          )
+    ,((modm .|. shiftMask, xK_Left   ), shiftToPrev          )]
     ++
     
     --
@@ -126,32 +139,28 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
 myWorkspaces :: [String]
 myWorkspaces =
-  [ "net", "terminal", "editor", "musica","docs","IM","IRC","8","9"
-  ]
+  [ "1-net", "2-terminal", "3-editor", "4-musica","5-docs","6-IM","7-IRC","8","9"]
 
 myManageHook = composeAll . concat $
   [  [resource =? f --> doFloat | f <- floatApps ]
-    ,[resource =? m --> doShift "musica" | m <- musicApps ]
-    ,[resource =? n --> doShift "net" | n <- netApps ]
-    ,[resource =? t --> doShift "terminal" | t <- terminalApps ]
-    ,[resource =? e --> doShift "editor" | e <- editorApps ]
-    ,[resource =? d --> doShift "doc" | d <- editorApps ]
-    ,[resource =? im --> doShift "IM" | im <- imApps ]  
-    ,[resource =? irc --> doShift "IRC" | irc <- ircApps ]
+    ,[resource =? m --> doShift (myWorkspaces !! 3) | m <- musicApps ]
+    ,[resource =? n --> doShift (myWorkspaces !! 0) | n <- netApps ]
+    ,[resource =? t --> doShift (myWorkspaces !! 1) | t <- terminalApps ]
+    ,[resource =? e --> doShift (myWorkspaces !! 2) | e <- editorApps ]
+    ,[resource =? d --> doShift (myWorkspaces !! 4) | d <- editorApps ]
+    ,[className =? im --> doShift (myWorkspaces !! 5) | im <- imApps ]  
+    ,[resource =? irc --> doShift (myWorkspaces !! 6) | irc <- ircApps ]
   ]
 netApps = ["chromium-browser","firefox","opera"] -- works
 terminalApps = ["xterm","gnome-terminal"] -- does not work (yet)
 editorApps = ["emacs","vim"] -- dnw
 musicApps = ["banshee","alsamixer"] -- dnw
-docApps = ["evince"] -- dnt
-imApps = ["pidgin"] -- dnt
+docApps = ["evince","lowriter"] -- dnt
+imApps = ["Pidgin"] -- dnt
 ircApps = ["xchat"] -- dnt
 floatApps = ["gimp","aquaria"] -- didn't test
 
-startupApps = [("trayer --edge top --align right --SetDockType true --SetPartialStrut true --expand true --width 10 --transparent true --tint 0x191970 --height 12 &","trayer") -- system tray, configured to get only 10% of the screen
-              ,("nm-applet --sm-disable &","nm-applet") -- network manager applet
-              ,("chromium-browser","chromium-browse")
-              ,("gnome-terminal","gnome-terminal")
+startupApps = [("gnome-terminal","gnome-terminal")
               ,("emacs","emacs") 
               ,("xchat","xchat")
               ,("pidgin","pidgin")] 
@@ -159,15 +168,39 @@ startupApps = [("trayer --edge top --align right --SetDockType true --SetPartial
 cmdIfNotRunning :: String -> String -> String
 cmdIfNotRunning command psName = "if [[ \"$(pgrep " ++ psName ++ ")\" =~ \"[0-9]+\" ]] ; then " ++ command ++ "; fi" -- check if pgrep's output is a number; if not (empty string), program is not running
 
+-----------------
+-- Layout hook --
+-----------------
+-- defining layouts on a per-workspace basis
+myLayoutHook = onWorkspace (myWorkspaces !! 0) simpleTabbed $ -- browser
+               avoidStruts $ onWorkspace (myWorkspaces !! 1) (spiral (6/7) ||| Accordion ||| simpleTabbed) $ -- terminal
+                             onWorkspace (myWorkspaces !! 3) simpleTabbed $ -- banshee + alsamixer
+                             onWorkspace (myWorkspaces !! 5) (withIM (1%7) (Title "Buddy List") simpleTabbed) $ -- IM layout
+                             onWorkspace (myWorkspaces !! 2) (Mirror tall) $ -- emacs
+                             onWorkspace (myWorkspaces !! 6) Full $
+                             standardLayouts
+                               where tall = Tall 1 0.03 0.5 -- applying default args here
+                                     standardLayouts = tall ||| Mirror tall ||| Full ||| Accordion ||| spiral (6/7) ||| simpleTabbed
+-- onWorkspace (myWorkspaces !! 1) (avoidStruts (spiral (6/7) ||| Accordion ||| simpleTabbed)) $ -- terminal
+-- onWorkspace (myWorkspaces !! 3) (avoidStruts simpleTabbed) $ -- banshee + alsamixer
+-- onWorkspace (myWorkspaces !! 5) (avoidStruts (withIM (1%7) (Title "Buddy List") simpleTabbed)) $ -- IM layout
+-- onWorkspace (myWorkspaces !! 2) (avoidStruts (Mirror tall)) $ -- emacs
+-- onWorkspace (myWorkspaces !! 6) (avoidStruts Full) $
+-- standardLayouts                                     
+                       
 main = do
+  spawn "trayer --edge top --align right --SetDockType true --SetPartialStrut true --expand true --width 10 --transparent true --tint 0x191970 --height 12 &" -- system tray, configured to get only 10% of the screen
   xmproc <- spawnPipe "/usr/bin/xmobar /home/dancluna/.xmobarrc" -- xmobar (90% of screen, see .xmobarrc for details)
   spawn "xmodmap /home/dancluna/.xmodmaprc"
-  sequence (map (spawn . (\x -> cmdIfNotRunning (fst x) (snd x))) startupApps) -- start some always-used programs
+  spawn "nm-applet --sm-disable &" -- network manager applet
+  sequence (map (spawn . fst) startupApps)
+--sequence (map (spawn . (\x -> cmdIfNotRunning (fst x) (snd x))) startupApps) -- start some always-used programs
   xmonad gnomeConfig {
   workspaces = myWorkspaces,
   modMask = mod4Mask,
   keys = myKeys,
   manageHook = manageDocks <+> myManageHook <+> manageHook defaultConfig,
+  layoutHook = myLayoutHook,
   logHook = dynamicLogWithPP xmobarPP
                 { ppOutput = hPutStrLn xmproc
                 , ppTitle = xmobarColor "green" "" . shorten 50
