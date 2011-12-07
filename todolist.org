@@ -1,9 +1,12 @@
 * Idéias
 ** TODO Fazer o Lingua (Perl) Unicode-compliant
 ** TODO Escrever um sistema semelhante ao [[http://www.wefeelfine.org/][We Feel Fine]] para o português
-** TODO Testar frameworks de NLP (Senna, Stanford, python)
+** TODO Testar frameworks de NLP (Senna, Stanford, python-nltk)
 ** TODO Aplicar Weka aos N tweets guardados no servidor
 ** TODO Dicionário de miguxês?
+** TODO Realizar tradução automática de tweets e aplicar o programa LIWC
+** TODO Hashtag parser
+** TODO Parser para a saída do PALAVRAS - ou um script para aplicar a cada texto
 * Bots
 ** TODO Blackjack/21 bot
 ** TODO [[http://aichallenge.org/index.php][AI Challenge Bot]]
@@ -15,3 +18,7 @@
 ** TODO Abrir um blog
 ** DONE oh-my-zsh prompt
 *** TODO Medidor de bateria p/ prompt
+** TODO Sabayon Linux
+* Aprendizado
+** TODO Introduction to NLP using Prolog and Perl
+** TODO Clojure

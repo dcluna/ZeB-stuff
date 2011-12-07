@@ -1,1 +1,9 @@
-Repo for my personal files, namely my .org files and .emacs, maybe other things I find useful.
+Repo for my personal files.
+
+xmonad.hs - still needs lots of configuring
+.xmobarrc - needs laptop battery state
+.xmodmaprc - inverts caps lock/left ctrl
+home.emacs - home .emacs configuration
+work.emacs - (old) work emacs config
+todolist.org - To-do list
+
