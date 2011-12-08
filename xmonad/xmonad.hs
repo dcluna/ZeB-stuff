@@ -83,6 +83,9 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
  
     -- Push window back into tiling
     , ((modm,               xK_t     ), withFocused $ windows . W.sink)
+      
+    -- Make window slightly transparent  
+    , ((modm .|. shiftMask, xK_t     ), spawn "transset"              )  
  
     -- Increment the number of windows in the master area
     , ((modm              , xK_comma ), sendMessage (IncMasterN 1))
@@ -155,18 +158,19 @@ netApps = ["chromium-browser","firefox","opera"] -- works
 terminalApps = ["xterm","gnome-terminal"] -- does not work (yet)
 editorApps = ["emacs","vim"] -- dnw
 musicApps = ["banshee","alsamixer"] -- dnw
-docApps = ["evince","lowriter"] -- dnt
+docApps = ["libreoffice-writer"] -- dnt
 imApps = ["Pidgin"] -- dnt
 ircApps = ["xchat"] -- dnt
-floatApps = ["gimp","aquaria"] -- didn't test
+floatApps = ["gimp","aquaria","snes9x-gtk","zsnes_1_51"] -- didn't test
 
 startupApps = [("gnome-terminal","gnome-terminal")
               ,("emacs","emacs") 
               ,("xchat","xchat")
               ,("pidgin","pidgin")] 
 
+-- this does not work, need to check 'spawn' in more detail
 cmdIfNotRunning :: String -> String -> String
-cmdIfNotRunning command psName = "if [[ \"$(pgrep " ++ psName ++ ")\" =~ \"[0-9]+\" ]] ; then " ++ command ++ "; fi" -- check if pgrep's output is a number; if not (empty string), program is not running
+cmdIfNotRunning command psName = "if [[ ! \"$(pgrep " ++ psName ++ ")\" =~ \"[0-9]+\" ]] ; then " ++ command ++ "; fi" -- check if pgrep's output is a number; if not (empty string), program is not running
 
 -----------------
 -- Layout hook --
@@ -181,20 +185,14 @@ myLayoutHook = onWorkspace (myWorkspaces !! 0) simpleTabbed $ -- browser
                              standardLayouts
                                where tall = Tall 1 0.03 0.5 -- applying default args here
                                      standardLayouts = tall ||| Mirror tall ||| Full ||| Accordion ||| spiral (6/7) ||| simpleTabbed
--- onWorkspace (myWorkspaces !! 1) (avoidStruts (spiral (6/7) ||| Accordion ||| simpleTabbed)) $ -- terminal
--- onWorkspace (myWorkspaces !! 3) (avoidStruts simpleTabbed) $ -- banshee + alsamixer
--- onWorkspace (myWorkspaces !! 5) (avoidStruts (withIM (1%7) (Title "Buddy List") simpleTabbed)) $ -- IM layout
--- onWorkspace (myWorkspaces !! 2) (avoidStruts (Mirror tall)) $ -- emacs
--- onWorkspace (myWorkspaces !! 6) (avoidStruts Full) $
--- standardLayouts                                     
                        
 main = do
   spawn "trayer --edge top --align right --SetDockType true --SetPartialStrut true --expand true --width 10 --transparent true --tint 0x191970 --height 12 &" -- system tray, configured to get only 10% of the screen
   xmproc <- spawnPipe "/usr/bin/xmobar /home/dancluna/.xmobarrc" -- xmobar (90% of screen, see .xmobarrc for details)
   spawn "xmodmap /home/dancluna/.xmodmaprc"
   spawn "nm-applet --sm-disable &" -- network manager applet
+  spawn "xcompmgr -c -r10 -F -f -D5 -C -o0.8 &"-- eye candy
   sequence (map (spawn . fst) startupApps)
---sequence (map (spawn . (\x -> cmdIfNotRunning (fst x) (snd x))) startupApps) -- start some always-used programs
   xmonad gnomeConfig {
   workspaces = myWorkspaces,
   modMask = mod4Mask,
